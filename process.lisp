@@ -48,7 +48,8 @@
 
 (defclass wish ()
   ((stream :initarg :stream :reader @stream)
-   (queue :initform () :accessor @queue)))
+   (queue :initform () :accessor @queue)
+   (event-table :initform (make-hash-table :test 'equal) :reader @table)))
 
 (defun start-wish (binary)
   (let ((*wish* (make-instance 'wish :stream (wish-stream binary))))
@@ -70,6 +71,12 @@
 
 (defun init-wish ()
   (write-wish "package require Tk")
-  (write-wish "proc esc {s} {regsub -all {\"} [regsub -all {\\\\} $s {\\\\\\\\}] {\\\"}}")
-  (write-wish "proc evnt {arg} {puts \"e \\\"[esc $arg]\\\"\\n\"; flush stdout}")
-  (write-wish "proc run {args} {set res {}; set err {}; if [catch {set res [eval $args]} err] {puts \"x \\\"[esc $err]\\\"\"} {puts \"d \\\"[esc $res]\\\"\"}; flush stdout}"))
+  (write-wish "proc esc {s} {format {\"%s\"} [regsub -all {\"} [regsub -all {\\\\} $s {\\\\\\\\}] {\\\"}]}")
+  (write-wish "proc lst {type args} {puts \"(:$type\"; foreach arg $args {puts \" [esc $arg]\";}; puts \")\\n\"; flush stdout}")
+  (write-wish "proc ev {args} {lst e $args}")
+  (write-wish "proc run {args} {set res {}; set err {}; if [catch {set res [eval $args]} err] {lst x $err} {lst d $res}}"))
+
+(defun register-event (id handler)
+  (setf (gethash id (@table *wish*)) handler))
+(defun unregister-event (id)
+  (remhash id (@table *wish*)))
