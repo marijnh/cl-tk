@@ -7,18 +7,27 @@
     (values (cdr expr) (car expr))))
 
 (defun eval-wish (&rest strings)
-  (write-wish (format nil "run {~{~a~^ ~}}" strings))
+  (wformat "run {~{~a~^ ~}}" strings)
   (loop :for (val type) := (multiple-value-list (read-wish-message))
         :do (ecase type
               (:d (return (car val)))
               (:x (error 'tk-error :format-control val))
               (:e (setf (@queue *wish*) (append (@queue *wish*) (list val)))))))
 
+(defun maybe-handle-event ()
+  (let ((stream (@stream *wish*)))
+    (loop :for ch := (read-char-no-hang stream)
+          :while (and ch (not (graphic-char-p ch)))
+          :finally (when ch
+                     (unread-char ch stream)
+                     (handle-event)
+                     (return t)))))
+
 (defun handle-event ()
   (let* ((ev (if (@queue *wish*)
                  (pop (@queue *wish*))
-                 (read-wish-message #\e)))
-         (handler (gethash (car ev) (@table *wish*))))
+                 (read-wish-message :e)))
+         (handler (gethash (parse-integer (car ev)) (@table *wish*))))
     (if handler
         (apply handler (cdr ev))
         (warn "Event '~a' fired, but no handler exists." (car ev)))))
@@ -26,3 +35,11 @@
 (defun main-loop ()
   (loop (handler-case (handle-event)
           (end-of-file () (return)))))
+
+(defun event-call (func fields)
+  (let ((id (register-event func)))
+    (format nil "{ev {~a}~{ %~a~}}" id fields)))
+
+(defmacro bind-event (tag event (&rest fields) &body body)
+  `(wformat "bind ~a ~a ~a" ,tag ,event
+            (event-call (lambda ,(mapcar #'first fields) ,@body) ',(mapcar #'second fields))))
