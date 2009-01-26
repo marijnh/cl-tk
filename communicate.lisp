@@ -6,8 +6,8 @@
       (tk-assert (eq (car expr) type) "Unexpected message '~a' from wish." (car expr)))
     (values (cdr expr) (car expr))))
 
-(defun eval-wish (string)
-  (write-wish (concatenate 'string "run " string))
+(defun eval-wish (&rest strings)
+  (write-wish (format nil "run {~{~a~^ ~}}" strings))
   (loop :for (val type) := (multiple-value-list (read-wish-message))
         :do (ecase type
               (:d (return (car val)))

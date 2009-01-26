@@ -74,7 +74,7 @@
   (write-wish "proc esc {s} {format {\"%s\"} [regsub -all {\"} [regsub -all {\\\\} $s {\\\\\\\\}] {\\\"}]}")
   (write-wish "proc lst {type args} {puts \"(:$type\"; foreach arg $args {puts \" [esc $arg]\";}; puts \")\\n\"; flush stdout}")
   (write-wish "proc ev {args} {lst e $args}")
-  (write-wish "proc run {args} {set res {}; set err {}; if [catch {set res [eval $args]} err] {lst x $err} {lst d $res}}"))
+  (write-wish "proc run {stat} {set res {}; set err {}; if [catch {set res [eval $stat]} err] {lst x $err} {lst d $res}}"))
 
 (defun register-event (id handler)
   (setf (gethash id (@table *wish*)) handler))
