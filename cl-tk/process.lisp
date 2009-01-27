@@ -66,6 +66,7 @@
 
 (defun wformat (str &rest args)
   (let ((stream (@stream *wish*)))
+    (apply #'format t str args)
     (apply #'format stream str args)
     (write-char #\newline stream)
     (finish-output stream)))
@@ -75,7 +76,7 @@
   (wformat "proc esc {s} {format {\"%s\"} [regsub -all {\"} [regsub -all {\\\\} $s {\\\\\\\\}] {\\\"}]}")
   (wformat "proc lst {type args} {puts \"(:$type\"; foreach arg $args {puts \" [esc $arg]\";}; puts \")\\n\"; flush stdout}")
   (wformat "proc ev {args} {lst e {*}$args}")
-  (wformat "proc run {stat} {set res {}; set err {}; if [catch {set res [eval $stat]} err] {lst x $err} {lst d $res}}"))
+  (wformat "proc run {stat} {set res {}; set err {}; if [catch {set res [uplevel #0 $stat]} err] {lst x $err} {lst d $res}}"))
 
 (defun register-event (handler)
   (let ((id (incf (@next-id *wish*))))

@@ -6,13 +6,35 @@
       (tk-assert (eq (car expr) type) "Unexpected message '~a' from wish." (car expr)))
     (values (cdr expr) (car expr))))
 
-(defun eval-wish (&rest strings)
-  (wformat "run {~{~a~^ ~}}" strings)
+(defun tcl-escape (str)
+  (with-output-to-string (out)
+    (write-char #\" out)
+    (loop :for ch :across str
+          :do (princ (case ch
+                       (#\newline "\\n") (#\tab "\\t") (#\backspace "\\b")
+                       (#\page "\\f") (#\return "\\r") (#\vt "\\v") (#\bell "\\a")
+                       ((#\" #\\ #\[ #\$) (princ #\\ out) ch)
+                       (t ch)) out))
+    (write-char #\" out)))
+
+(defstruct (literal-string (:constructor l (val))) val)
+
+(defun tcl-form (val)
+  (etypecase val
+    (keyword (format nil "-~a" (string-downcase (symbol-name val))))
+    (string (tcl-escape val))
+    (literal-string val)))
+
+(defun tk (command &rest args)
+  (wformat "run {~a~{ ~a~}}" command (mapcar #'tcl-form args))
   (loop :for (val type) := (multiple-value-list (read-wish-message))
         :do (ecase type
               (:d (return (car val)))
-              (:x (error 'tk-error :format-control val))
+              (:x (error 'tk-error :format-control (car val)))
               (:e (setf (@queue *wish*) (append (@queue *wish*) (list val)))))))
+
+(defun tk* (&rest args)
+  (apply #'apply 'tk args))
 
 (defun maybe-handle-event ()
   (let ((stream (@stream *wish*)))
@@ -36,7 +58,7 @@
   (loop (handler-case (handle-event)
           (end-of-file () (return)))))
 
-(defun event-handler (func fields)
+(defun event-handler (func &optional (fields ()))
   (let ((id (register-event func)))
     (values (format nil "{ev ~a~{ %~a~}}" id fields) id)))
 
