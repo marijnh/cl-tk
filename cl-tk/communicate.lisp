@@ -38,7 +38,7 @@
 
 (defun event-call (func fields)
   (let ((id (register-event func)))
-    (format nil "{ev {~a}~{ %~a~}}" id fields)))
+    (format nil "{ev ~a~{ %~a~}}" id fields)))
 
 (defmacro bind-event (tag event (&rest fields) &body body)
   "For example (bind-event \".\" \"<1>\" ((x #\x) (y #\y)) (format t \"clicked ~a,~a\" x y))"
