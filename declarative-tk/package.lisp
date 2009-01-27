@@ -1,3 +1,3 @@
 (defpackage :declarative-tk
-  (:use (:cl :cl-tk))
+  (:use :cl :cl-tk)
   (:export))

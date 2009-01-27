@@ -36,11 +36,11 @@
   (loop (handler-case (handle-event)
           (end-of-file () (return)))))
 
-(defun event-call (func fields)
+(defun event-handler (func fields)
   (let ((id (register-event func)))
-    (format nil "{ev ~a~{ %~a~}}" id fields)))
+    (values (format nil "{ev ~a~{ %~a~}}" id fields) id)))
 
 (defmacro bind-event (tag event (&rest fields) &body body)
   "For example (bind-event \".\" \"<1>\" ((x #\x) (y #\y)) (format t \"clicked ~a,~a\" x y))"
   `(wformat "bind ~a ~a ~a" ,tag ,event
-            (event-call (lambda ,(mapcar #'first fields) ,@body) ',(mapcar #'second fields))))
+            (event-handler (lambda ,(mapcar #'first fields) ,@body) ',(mapcar #'second fields))))
