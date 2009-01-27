@@ -71,10 +71,10 @@
     (finish-output stream)))
 
 (defun init-wish ()
-  (wformat "package require Tk")
+  (wformat "package require Tk 8.5")
   (wformat "proc esc {s} {format {\"%s\"} [regsub -all {\"} [regsub -all {\\\\} $s {\\\\\\\\}] {\\\"}]}")
   (wformat "proc lst {type args} {puts \"(:$type\"; foreach arg $args {puts \" [esc $arg]\";}; puts \")\\n\"; flush stdout}")
-  (wformat "proc ev {args} {eval lst e $args}")
+  (wformat "proc ev {args} {lst e {*}$args}")
   (wformat "proc run {stat} {set res {}; set err {}; if [catch {set res [eval $stat]} err] {lst x $err} {lst d $res}}"))
 
 (defun register-event (handler)
