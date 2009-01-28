@@ -5,4 +5,5 @@
             ((:file "package")
              (:file "misc" :depends-on ("package"))
              (:file "process" :depends-on ("misc"))
-             (:file "communicate" :depends-on ("process"))))))
+             (:file "communicate" :depends-on ("process"))
+             (:file "widget" :depends-on ("communicate"))))))
