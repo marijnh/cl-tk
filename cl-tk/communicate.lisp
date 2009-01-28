@@ -32,7 +32,7 @@
                command (mapcar #'tcl-form args))))
 
 (defun tk (command &rest args)
-  (wformat "run {~a~{ ~a~}}" command (mapcar #'tcl-form args))
+  (wformat "_run {~a~{ ~a~}}" command (mapcar #'tcl-form args))
   (loop :for (val type) := (multiple-value-list (read-wish-message))
         :do (ecase type
               (:d (return (car val)))
@@ -63,7 +63,7 @@
 
 (defun event-handler (func &optional (fields ()))
   (let ((id (register-event func)))
-    (values (format nil "ev ~a~{ %~a~}" id fields) id)))
+    (values (format nil "_ev ~a~{ %~a~}" id fields) id)))
 
 (defmacro bind-event (tag event (&rest fields) &body body)
   "For example (bind-event \".\" \"<1>\" ((x #\x) (y #\y)) (format t \"clicked ~a,~a\" x y))"
