@@ -73,7 +73,7 @@
 (defun init-wish ()
   (wformat "package require Tk 8.5")
   (wformat "proc _esc {s} {format {\"%s\"} [regsub -all {\"} [regsub -all {\\\\} $s {\\\\\\\\}] {\\\"}]}")
-  (wformat "proc _lst {type args} {puts \"(:$type\"; foreach arg $args {puts \" [_esc $arg]\";}; puts \")\\n\"; flush stdout}")
+  (wformat "proc _lst {type args} {puts \"(:$type\"; foreach arg $args {puts \" [_esc $arg]\"}; puts \")\\n\"; flush stdout}")
   (wformat "proc _ev {args} {_lst e {*}$args}")
   (wformat "proc _run {stat} {if [catch {set res [uplevel #0 $stat]} err] {_lst x $err} {_lst d $res}}"))
 

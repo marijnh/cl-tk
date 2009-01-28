@@ -1,10 +1,19 @@
 (in-package :cl-tk)
 
 (defun read-wish-message (&optional type)
-  (let ((expr (read-preserving-whitespace (@stream *wish*))))
-    (when type
-      (tk-assert (eq (car expr) type) "Unexpected message '~a' from wish." (car expr)))
-    (values (cdr expr) (car expr))))
+  (let ((stream (@stream *wish*)))
+    (unless (eql (peek-char t stream) #\()
+      (let ((junk (with-output-to-string (out)
+                    (loop :for ch := (read-char-no-hang stream)
+                          :if (not ch) :do (return)
+                          :if (eql ch #\() :do (unread-char ch stream)
+                                      :and :do (return)
+                          :do (write-char ch out)))))
+        (error 'tk-error "Junk in wish output: '~a'" junk)))
+    (let ((expr (read-preserving-whitespace stream)))
+      (unless (or (null type) (eq (car expr) type))
+        (error 'tk-error "Unexpected message '~a' from wish." (car expr)))
+      (values (cdr expr) (car expr)))))
 
 (defun tcl-escape (str)
   (with-output-to-string (out)
