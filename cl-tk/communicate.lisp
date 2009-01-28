@@ -17,13 +17,19 @@
                        (t ch)) out))
     (write-char #\" out)))
 
-(defstruct (literal-string (:constructor l (val))) val)
+(defstruct (literal-string (:constructor lit (val))) val)
 
 (defun tcl-form (val)
   (etypecase val
     (keyword (format nil "-~a" (string-downcase (symbol-name val))))
     (string (tcl-escape val))
-    (literal-string val)))
+    (number (princ-to-string val))
+    (literal-string (literal-string-val val))
+    (list (format nil "~{~a~^ ~}" (mapcar #'tcl-form val)))))
+
+(defun tcl (mode command &rest args)
+  (lit (format nil (ecase mode (:[ "[~a~{ ~a~}]") (:{ "{~a~{ ~a~}}"))
+               command (mapcar #'tcl-form args))))
 
 (defun tk (command &rest args)
   (wformat "run {~a~{ ~a~}}" command (mapcar #'tcl-form args))
@@ -32,9 +38,6 @@
               (:d (return (car val)))
               (:x (error 'tk-error :format-control (car val)))
               (:e (setf (@queue *wish*) (append (@queue *wish*) (list val)))))))
-
-(defun tk* (&rest args)
-  (apply #'apply 'tk args))
 
 (defun maybe-handle-event ()
   (let ((stream (@stream *wish*)))
@@ -60,9 +63,9 @@
 
 (defun event-handler (func &optional (fields ()))
   (let ((id (register-event func)))
-    (values (format nil "{ev ~a~{ %~a~}}" id fields) id)))
+    (values (format nil "ev ~a~{ %~a~}" id fields) id)))
 
 (defmacro bind-event (tag event (&rest fields) &body body)
   "For example (bind-event \".\" \"<1>\" ((x #\x) (y #\y)) (format t \"clicked ~a,~a\" x y))"
-  `(wformat "bind ~a ~a ~a" ,tag ,event
+  `(wformat "bind ~a ~a {~a}" ,tag ,event
             (event-handler (lambda ,(mapcar #'first fields) ,@body) ',(mapcar #'second fields))))
