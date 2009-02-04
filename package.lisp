@@ -4,4 +4,5 @@
            #:*wish-binary* #:*tk*
            #:tcl-escape #:lit #:tcl #:tcl[ #:tcl{
            #:event-handler #:unregister-event #:bind-event
-           #:destroy #:doevents))
+           #:wish-tk #:ffi-tk
+           #:start-tk #:destroy #:doevents))

@@ -1,11 +1,13 @@
 (in-package :cl-tk)
 
-(defun tk-obj ()
-  (handler-case (make-instance 'cffi-tk)
-    (error () (make-instance 'wish-tk))))
+(defun start-tk (&optional class)
+  (if class
+      (make-instance class)
+      (handler-case (make-instance 'cffi-tk)
+        (error () (make-instance 'wish-tk)))))
 
-(defmacro with-tk (&body body)
-  `(let ((*tk* (tk-obj))) ,@body))
+(defmacro with-tk ((&optional class) &body body)
+  `(let ((*tk* (start-tk ,class))) ,@body))
 
-(defun toplevel-tk ()
-  (setf *tk* (tk-obj)))
+(defun toplevel-tk (&optional class)
+  (setf *tk* (start-tk class)))
