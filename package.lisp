@@ -5,4 +5,5 @@
            #:tcl-escape #:lit #:tcl #:tcl[ #:tcl{
            #:event-handler #:unregister-event #:bind-event
            #:wish-tk #:ffi-tk
-           #:start-tk #:destroy #:doevents))
+           #:start-tk #:destroy #:alive-p
+           #:doevent #:doevents #:mainloop))

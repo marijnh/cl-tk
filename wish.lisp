@@ -48,9 +48,10 @@
 
 (defclass wish-tk (tk)
   ((stream :reader @stream)
-   (queue :initform () :accessor @queue)))
+   (queue :initform () :accessor @queue)
+   (alive :initform t :accessor @alive)))
 
-(defmethod initialize-instance ((tk wish-tk) &key &allow-other-keys)
+(defmethod initialize-instance :after ((tk wish-tk) &key &allow-other-keys)
   (setf (slot-value tk 'stream) (wish-stream *wish-binary*))
   (tcl-send tk "package require Tk 8.5" nil)
   (tcl-send tk "proc _esc {s} {format {\"%s\"} [regsub -all {\"} [regsub -all {\\\\} $s {\\\\\\\\}] {\\\"}]}" nil)
@@ -59,8 +60,11 @@
   (tcl-send tk "proc _run {stat} {if [catch {set res [uplevel #0 $stat]} err] {_lst x $err} {_lst d $res}}" nil))
 
 (defmethod tk-destroy ((tk wish-tk))
-  (when (open-stream-p (@stream tk))
+  (when (@alive tk)
     (tcl-send tk "destroy .")))
+
+(defmethod tk-alive-p ((tk wish-tk))
+  (@alive tk))
 
 (defun read-wish-message (stream &optional type)
   (unless (eql (peek-char t stream) #\()
@@ -78,7 +82,10 @@
 
 (defmethod tcl-send ((tk wish-tk) command &optional (get-result nil))
   (let ((stream (@stream tk)))
-    (format stream (if get-result "_run {~a}~%" "~a~%") command)
+    (handler-case (format stream (if get-result "_run {~a}~%" "~a~%") command)
+      (error ()
+        (setf (@alive tk) nil)
+        (tcl-error "Wish process exited.")))
     (finish-output stream)
     (when get-result
       (loop :for (val type) := (multiple-value-list (read-wish-message stream))
@@ -93,10 +100,11 @@
         :if (graphic-char-p ch) :do (progn (unread-char ch stream)
                                            (return t))))
 
-(defmethod tk-doevents ((tk wish-tk) &optional block)
+(defmethod tk-doevent ((tk wish-tk) &optional block)
   (let ((stream (@stream tk)))
     (handler-case
-        (loop :while (or block (input-pending-p stream))
-              :do (destructuring-bind (id &rest args) (read-wish-message stream :e)
-                    (handle-event tk (parse-integer id) args)))
-      (end-of-file () nil))))
+        (when (or block (input-pending-p stream))
+          (destructuring-bind (id &rest args) (read-wish-message stream :e)
+            (handle-event tk (parse-integer id) args))
+          t)
+      (end-of-file () (setf (@alive tk) nil)))))

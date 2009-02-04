@@ -34,9 +34,19 @@
         (warn "Event '~a' fired, but no handler exists." id))))
 
 (defgeneric tk-destroy (tk))
+(defgeneric tk-alive-p (tk))
 (defun destroy () (tk-destroy *tk*))
-(defgeneric tk-doevents (tk &optional block))
-(defun doevents (&optional block) (tk-doevents *tk* block))
+(defun alive-p () (tk-alive-p *tk*))
+
+(defgeneric tk-doevent (tk &optional (block t)))
+(defun doevent (&optional block) (tk-doevent *tk* block))
+(defun doevents () (loop :while (doevent)))
+(defun mainloop ()
+  (loop
+   (doevents)
+   (unless (tk-alive-p *tk*) (return))
+   (doevent t)))
+
 (defgeneric tcl-send (tk command &optional get-result))
 
 (defun tcl-escape (str)
@@ -63,8 +73,8 @@
 (flet ((as-string (before after command args)
          (format nil "~a~a~{ ~a~}~a" before command (mapcar 'tcl-form args) after)))
   (defun tcl[ (command &rest args)
-    (as-string #\[ #\] command args))
+    (lit (as-string #\[ #\] command args)))
   (defun tcl{ (command &rest args)
-    (as-string #\{ #\} command args))
+    (lit (as-string #\{ #\} command args)))
   (defun tcl (command &rest args)
     (tcl-send *tk* (as-string "" "" command args))))
