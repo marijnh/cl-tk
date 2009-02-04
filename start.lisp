@@ -7,7 +7,9 @@
         (error () (make-instance 'wish-tk)))))
 
 (defmacro with-tk ((&optional class) &body body)
-  `(let ((*tk* (start-tk ,class))) ,@body))
+  `(let ((*tk* (start-tk ,class)))
+     (unwind-protect (progn ,@body)
+       (destroy))))
 
 (defun toplevel-tk (&optional class)
   (setf *tk* (start-tk class)))
