@@ -1,5 +1,5 @@
 (defpackage :cl-tk
-  (:use :cl :cffi)
+  (:use :cl)
   (:export #:toplevel-tk #:with-tk
            #:*wish-binary* #:*tk*
            #:tcl-escape #:lit #:tcl #:tcl[ #:tcl{

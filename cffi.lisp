@@ -1,45 +1,38 @@
 (in-package :cl-tk)
 
-(define-foreign-library tcl
+(cffi:define-foreign-library tcl
   (:darwin (:framework "Tcl"))
   (:windows (:or "/tcl/bin/Tcl85.dll"))
   (:unix (:or "libtcl8.5.so" "libtcl.so"))
   (t (:default "libtcl")))
 
-(define-foreign-library tk
+(cffi:define-foreign-library tk
   (:darwin (:framework "Tk"))
   (:windows (:or "/tcl/bin/tk85.dll"))
   (:unix (:or "libtk8.5.so" "libtk.so"))
   (t (:default "libtk")))
+
+(cffi:use-foreign-library tcl)
+(cffi:use-foreign-library tk)
 
 (eval-when (compile eval load)
   (defconstant +tcl-ok+ 0)
   (defconstant +tcl-error+ 1)
   (defconstant +tcl-dont-wait+ 2))
 
-(defcfun ("Tcl_CreateInterp" create-interp) :pointer)
-(defcfun ("Tcl_DeleteInterp" delete-interp) :void (interp :pointer))
-(defcfun ("Tcl_Init" tcl-init) :int (interp :pointer))
-(defcfun ("Tcl_Eval" tcl-eval) :int (interp :pointer) (script :string)) ;; TODO external-format?
-(defcfun ("Tcl_GetStringResult" get-string-result) :string (interp :pointer))
-(defcfun ("Tcl_DoOneEvent" do-one-event) :int (flags :int))
-(defcfun ("Tk_Init" tk-init) :int (interp :pointer))
-
-(defvar *used* nil)
-
-(defun load-libs ()
-  (unless *used*
-    (handler-case (progn (use-foreign-library tcl)
-                         (use-foreign-library tk)
-                         (setf *used* t))
-      (error (e) (tcl-error (princ-to-string e))))))
+(cffi:defcfun ("Tcl_CreateInterp" create-interp) :pointer)
+(cffi:defcfun ("Tcl_DeleteInterp" delete-interp) :void (interp :pointer))
+(cffi:defcfun ("Tcl_Init" tcl-init) :int (interp :pointer))
+(cffi:defcfun ("Tcl_Eval" tcl-eval) :int (interp :pointer) (script :string)) ;; TODO external-format?
+(cffi:defcfun ("Tcl_GetStringResult" get-string-result) :string (interp :pointer))
+(cffi:defcfun ("Tcl_DoOneEvent" do-one-event) :int (flags :int))
+(cffi:defcfun ("Tk_Init" tk-init) :int (interp :pointer))
 
 (defclass ffi-tk (tk)
   ((interp :reader @interp)
    (alive :initform nil :accessor @alive)))
 
 (defmethod initialize-instance :after ((tk ffi-tk) &key &allow-other-keys)
-  (load-libs)
   (let ((int (create-interp)))
     (when (zerop int) (tcl-error "Could not create interpreter."))
     (unless (and (= (tcl-init int) +tcl-ok+) (= (tk-init int) +tcl-ok+))

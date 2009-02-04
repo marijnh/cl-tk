@@ -78,3 +78,19 @@
     (lit (as-string #\{ #\} command args)))
   (defun tcl (command &rest args)
     (tcl-send *tk* (as-string "" "" command args))))
+
+;; Running a Tk instance
+
+(defun start-tk (&optional class)
+  (if class
+      (make-instance class)
+      (handler-case (make-instance 'ffi-tk)
+        (error () (make-instance 'wish-tk)))))
+
+(defmacro with-tk ((&optional class) &body body)
+  `(let ((*tk* (start-tk ,class)))
+     (unwind-protect (progn ,@body)
+       (destroy))))
+
+(defun toplevel-tk (&optional class)
+  (setf *tk* (start-tk class)))
