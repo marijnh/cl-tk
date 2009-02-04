@@ -59,7 +59,7 @@
     (delete-interp (@interp tk))
     (setf (@alive tk) nil)))
 
-(defmethod tk-open-p ((tk ffi-tk))
+(defmethod tk-alive-p ((tk ffi-tk))
   (@alive tk))
 
 (defmethod tcl-send ((tk ffi-tk) command &optional (get-result t))
