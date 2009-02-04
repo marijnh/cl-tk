@@ -1,5 +1,7 @@
 (in-package :cl-tk)
 
+;; Some inspiration taken from Peter Herth's LTK project: http://www.peter-herth.de/ltk/
+
 (defun wish-stream (binary-name)
   (or
    #+(or cmu scl)
