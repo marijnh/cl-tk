@@ -80,7 +80,7 @@
       (tcl-error "Unexpected message '~a' from wish." (car expr)))
     (values (cdr expr) (car expr))))
 
-(defmethod tcl-send ((tk wish-tk) command &optional (get-result nil))
+(defmethod tcl-send ((tk wish-tk) command &optional (get-result t))
   (let ((stream (@stream tk)))
     (handler-case (format stream (if get-result "_run {~a}~%" "~a~%") command)
       (error ()
