@@ -61,7 +61,7 @@
 
 (defmethod tk-destroy ((tk wish-tk))
   (when (@alive tk)
-    (tcl-send tk "destroy .")))
+    (ignore-errors (tcl-send tk "destroy ."))))
 
 (defmethod tk-alive-p ((tk wish-tk))
   (@alive tk))

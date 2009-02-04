@@ -4,4 +4,5 @@
                (:file "base" :depends-on ("package"))
                (:file "cffi" :depends-on ("base"))
                (:file "wish" :depends-on ("base"))
-               (:file "start" :depends-on ("wish" "cffi"))))
+               (:file "start" :depends-on ("wish" "cffi"))
+               (:file "helper" :depends-on ("start"))))
