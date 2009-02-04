@@ -6,4 +6,5 @@
            #:event-handler #:unregister-event #:bind-event
            #:wish-tk #:ffi-tk
            #:start-tk #:destroy #:alive-p
-           #:doevent #:doevents #:mainloop))
+           #:doevent #:doevents #:mainloop
+           #:build-grid))
