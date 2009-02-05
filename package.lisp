@@ -3,6 +3,7 @@
   (:export #:toplevel-tk #:with-tk
            #:*wish-binary* #:*tk*
            #:tcl-escape #:lit #:tcl #:tcl[ #:tcl{
+           #:wname-cons #:wname-car #:wname-cdr
            #:event-handler #:event-handler* #:unregister-event
            #:bind-event #:with-local-events
            #:wish-tk #:ffi-tk

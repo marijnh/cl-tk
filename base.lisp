@@ -80,6 +80,15 @@
                        (t ch)) out))
     (write-char #\" out)))
 
+(defun wname-cons (base name)
+  (format nil "~a.~a" base name))
+(defun wname-car (name)
+  (subseq name (1+ (or (position #\. name :from-end t)
+                       (tcl-error "~a is not a valid wname" name)))))
+(defun wname-cdr (name)
+  (subseq name 0 (max 1 (or (position #\. name :from-end t)
+                            (tcl-error "~a is not a valid wname" name)))))
+
 (defstruct (literal-string (:constructor lit (val))) val)
 
 (defun tcl-form (val)
