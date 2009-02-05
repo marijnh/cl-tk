@@ -80,15 +80,6 @@
                        (t ch)) out))
     (write-char #\" out)))
 
-(defun wname-cons (base name)
-  (format nil "~a.~a" base name))
-(defun wname-car (name)
-  (subseq name (1+ (or (position #\. name :from-end t)
-                       (tcl-error "~a is not a valid wname" name)))))
-(defun wname-cdr (name)
-  (subseq name 0 (max 1 (or (position #\. name :from-end t)
-                            (tcl-error "~a is not a valid wname" name)))))
-
 (defstruct (literal-string (:constructor lit (val))) val)
 
 (defun tcl-form (val)
@@ -107,6 +98,24 @@
     (lit (as-string #\{ #\} command args)))
   (defun tcl (command &rest args)
     (tcl-send *tk* (as-string "" "" command args))))
+
+;; wnames
+
+(defun wname-cons (base name)
+  (format nil "~a.~a" base name))
+(flet ((find-dot (name)
+         (or (position #\. name :from-end t)
+             (tcl-error "~a is not a valid wname" name))))
+  (defun wname-car (name)
+    (subseq name (1+ (find-dot name))))
+  (defun wname-cdr (name)
+    (subseq name 0 (max 1 (find-dot name)))))
+
+(defvar *wname* ".")
+(defmacro with-wname (name &body body)
+  `(let ((*wname* ,name)) ,@body))
+(defun wname (name)
+  (wname-cons *wname* name))
 
 ;; Running a Tk instance
 
