@@ -25,6 +25,9 @@
   (let ((id (register-event func)))
     (values (format nil "_ev ~a~{ %~a~}" id fields) id)))
 
+(defmacro event-handler* (&body body)
+  `(event-handler (lambda () ,@body)))
+
 (defmacro bind-event (tag event (&rest fields) &body body)
   "For example (bind-event \".\" \"<1>\" ((x #\x) (y #\y)) (format t \"clicked ~a,~a\" x y))"
   `(tcl "bind" ,tag ,event
