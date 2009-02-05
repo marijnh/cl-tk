@@ -31,3 +31,11 @@
     (tcl "grid columnconfigure . all -weight 1")
     (tcl "grid rowconfigure . all -weight 1")
     (mainloop)))
+
+(defun test-menu ()
+  (with-random-tk
+    (add-menus "."
+               `("_File" ("_Load" :command ,(event-handler* (print "Loading")))
+                         ("E_xit" :command ,(event-handler #'destroy)))
+               `("_Help" ("_About" :command ,(tcl{ "tk_messageBox" :message "This is a test."))))
+    (mainloop)))

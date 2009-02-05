@@ -60,10 +60,8 @@
 (defun doevent (&optional block) (tk-doevent *tk* block))
 (defun doevents () (loop :while (doevent)))
 (defun mainloop ()
-  (loop
-   (doevents)
-   (unless (tk-alive-p *tk*) (return))
-   (doevent t)))
+  (loop :while (alive-p)
+        :do (doevent t)))
 
 (defgeneric tcl-send (tk command &optional get-result))
 
@@ -110,6 +108,14 @@
     (subseq name (1+ (find-dot name))))
   (defun wname-cdr (name)
     (subseq name 0 (max 1 (find-dot name)))))
+
+(defun as-wname (string)
+  (with-output-to-string (out)
+    (loop :with underscore := nil
+          :for ch :across string
+          :when (alphanumericp ch) :do (write-char (char-downcase ch) out)
+          :else :if (not underscore) :do (write-char #\_ out)
+          :do (setf underscore (alphanumericp ch)))))
 
 (defvar *wname* ".")
 (defmacro with-wname (name &body body)
