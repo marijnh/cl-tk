@@ -56,7 +56,7 @@
 (defun destroy () (tk-destroy *tk*))
 (defun alive-p () (tk-alive-p *tk*))
 
-(defgeneric tk-doevent (tk &optional (block t)))
+(defgeneric tk-doevent (tk &optional block))
 (defun doevent (&optional block) (tk-doevent *tk* block))
 (defun doevents () (loop :while (doevent)))
 (defun mainloop ()
