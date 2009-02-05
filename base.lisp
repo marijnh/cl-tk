@@ -13,7 +13,8 @@
 ;; Event callback registration
 
 (defun register-event (handler)
-  (let ((id (incf (@next-id *tk*))))
+  (let ((id (@next-id *tk*)))
+    (incf (@next-id *tk*))
     (setf (gethash id (@table *tk*)) handler)
     id))
 
@@ -34,6 +35,18 @@
     (if handler
         (apply handler args)
         (warn "Event '~a' fired, but no handler exists." id))))
+
+(defmacro with-local-events (&body body)
+  (let ((count (gensym)))
+    `(let ((,count (@next-id *tk*)))
+       (unwind-protect (progn ,@body)
+         (let ((tab (@table *tk*)))
+           (maphash (lambda (k v)
+                      (declare (ignore v))
+                      (when (>= k ,count) (remhash k tab)))
+                    tab))))))
+
+;; Methods on tk objects
 
 (defgeneric tk-destroy (tk))
 (defgeneric tk-alive-p (tk))
