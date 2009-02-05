@@ -100,7 +100,7 @@
 ;; wnames
 
 (defun wname-cons (base name)
-  (format nil "~a.~a" base name))
+  (format nil "~a.~a" (if (string= base ".") "" base) name))
 (flet ((find-dot (name)
          (or (position #\. name :from-end t)
              (tcl-error "~a is not a valid wname" name))))

@@ -34,8 +34,11 @@
 
 (defun test-menu ()
   (with-random-tk
-    (add-menus "."
-               `("_File" ("_Load" :command ,(event-handler* (print "Loading")))
-                         ("E_xit" :command ,(event-handler #'destroy)))
-               `("_Help" ("_About" :command ,(tcl{ "tk_messageBox" :message "This is a test."))))
+    (build-menus "."
+      (menu "_File"
+        (menu "_Test" (menu-item "Xxx") (menu-item "Yyy"))
+        (menu-item "_Load" :command (event-handler* (print "Loading") (finish-output)))
+        (menu-item "E_xit" :command (event-handler #'destroy)))
+      (menu "_Help"
+        (menu-item "_About" :command (tcl{ "tk_messageBox" :message "This is a test."))))
     (mainloop)))
