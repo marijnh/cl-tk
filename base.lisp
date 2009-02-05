@@ -10,6 +10,8 @@
   ((event-table :initform (make-hash-table :test 'eql) :reader @table)
    (next-id :initform 0 :accessor @next-id)))
 
+;; Event callback registration
+
 (defun register-event (handler)
   (let ((id (incf (@next-id *tk*))))
     (setf (gethash id (@table *tk*)) handler)
@@ -48,6 +50,8 @@
    (doevent t)))
 
 (defgeneric tcl-send (tk command &optional get-result))
+
+;; Tcl commands
 
 (defun tcl-escape (str)
   (with-output-to-string (out)

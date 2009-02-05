@@ -12,8 +12,12 @@
   (:unix (:or "libtk8.5.so" "libtk.so"))
   (t (:default "libtk")))
 
-(cffi:use-foreign-library tcl)
-(cffi:use-foreign-library tk)
+(let ((loaded nil))
+  (defun use-libs ()
+    (unless loaded
+      (cffi:use-foreign-library tcl)
+      (cffi:use-foreign-library tk)
+      (setf loaded t))))
 
 (eval-when (compile eval load)
   (defconstant +tcl-ok+ 0)
@@ -33,6 +37,8 @@
    (alive :initform nil :accessor @alive)))
 
 (defmethod initialize-instance :after ((tk ffi-tk) &key &allow-other-keys)
+  (handler-case (use-libs)
+    (error (e) (tcl-error (princ-to-string e))))
   (let ((int (create-interp)))
     (when (zerop int) (tcl-error "Could not create interpreter."))
     (unless (and (= (tcl-init int) +tcl-ok+) (= (tk-init int) +tcl-ok+))

@@ -69,10 +69,8 @@
 (defun read-wish-message (stream &optional type)
   (unless (eql (peek-char t stream) #\()
     (let ((junk (with-output-to-string (out)
-                  (loop :for ch := (read-char-no-hang stream)
-                        :if (not ch) :do (return)
-                        :if (eql ch #\() :do (unread-char ch stream)
-                        :and :do (return)
+                  (loop :for ch := (read-char-no-hang stream) :while ch
+                        :if (eql ch #\() :do (progn (unread-char ch stream) (return))
                         :do (write-char ch out)))))
       (tcl-error "Junk in wish output: '~a'" junk)))
   (let ((expr (read-preserving-whitespace stream)))
