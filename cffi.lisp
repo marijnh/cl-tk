@@ -34,7 +34,7 @@
 
 (defclass ffi-tk (tk)
   ((interp :reader @interp)
-   (alive :initform nil :accessor @alive)))
+   (alive :initform t :accessor @alive)))
 
 (defmethod initialize-instance :after ((tk ffi-tk) &key &allow-other-keys)
   (handler-case (use-libs)
@@ -43,8 +43,7 @@
     (when (zerop int) (tcl-error "Could not create interpreter."))
     (unless (and (= (tcl-init int) +tcl-ok+) (= (tk-init int) +tcl-ok+))
       (tcl-error "Initialising Tcl/Tk failed."))
-    (setf (slot-value tk 'interp) int
-          (@alive tk) t))
+    (setf (slot-value tk 'interp) int))
   (tcl-send tk "proc _esc {s} {format {\"%s\"} [regsub -all {\"} [regsub -all {\\\\} $s {\\\\\\\\}] {\\\"}]}")
   (tcl-send tk "set _events {}")
   (tcl-send tk "proc _ev {args} {global _events; foreach arg $args {append escaped [_esc $arg]}; lappend _events \"([concat $escaped])\"}")
@@ -55,8 +54,8 @@
 
 (defmethod tk-destroy ((tk ffi-tk))
   (when (@alive tk)
-    (delete-interp (@interp tk))
-    (setf (@alive tk) nil)))
+    (setf (@alive tk) nil)
+    (delete-interp (@interp tk))))
 
 (defmethod tk-alive-p ((tk ffi-tk))
   (@alive tk))
