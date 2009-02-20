@@ -27,8 +27,8 @@
 (cffi:defcfun ("Tcl_CreateInterp" create-interp) :pointer)
 (cffi:defcfun ("Tcl_DeleteInterp" delete-interp) :void (interp :pointer))
 (cffi:defcfun ("Tcl_Init" tcl-init) :int (interp :pointer))
-(cffi:defcfun ("Tcl_Eval" tcl-eval) :int (interp :pointer) (script :string)) ;; TODO external-format?
-(cffi:defcfun ("Tcl_GetStringResult" get-string-result) :string (interp :pointer))
+(cffi:defcfun ("Tcl_Eval" tcl-eval) :int (interp :pointer) (script (:string :encoding :utf-16))) ;; TODO external-format?
+(cffi:defcfun ("Tcl_GetStringResult" get-string-result) (:string :encoding :utf-16) (interp :pointer))
 (cffi:defcfun ("Tcl_DoOneEvent" do-one-event) :int (flags :int))
 (cffi:defcfun ("Tk_Init" tk-init) :int (interp :pointer))
 
