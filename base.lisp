@@ -120,8 +120,8 @@
 (defvar *wname* ".")
 (defmacro with-wname (name &body body)
   `(let ((*wname* ,name)) ,@body))
-(defun wname (name)
-  (wname-cons *wname* name))
+(defun wname (name &optional id)
+  (wname-cons *wname* (if id (format nil "~a~a" name id) name)))
 
 ;; Running a Tk instance
 
