@@ -7,5 +7,4 @@
   :components ((:file "package")
                (:file "base" :depends-on ("package"))
                (:file "wish" :depends-on ("base"))
-               #+cffi (:file "cffi" :depends-on ("base"))
-               (:file "helper" :depends-on ("base"))))
+               #+cffi (:file "cffi" :depends-on ("base"))))
