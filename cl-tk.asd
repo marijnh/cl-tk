@@ -3,7 +3,7 @@
     (pushnew :cffi *features*)))
 
 (asdf:defsystem :cl-tk
-  :depends-on (#+cffi :cffi)
+  :depends-on (#+(and (not allegro) cffi) :cffi)
   :components ((:file "package")
                (:file "base" :depends-on ("package"))
                (:file "wish" :depends-on ("base"))
