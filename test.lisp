@@ -6,7 +6,7 @@
 (defun test-button ()
   (with-random-tk
     (let ((stop nil))
-      (tcl "ttk::button" ".b" :text "Exit" :command (event-handler* (setf stop t)))
+      (tcl "ttk::button" ".b" :text "Exit ☻" :command (event-handler* (setf stop t)))
       (tcl "pack .b")
       (loop :while (alive-p)
             :do (doevent t)
