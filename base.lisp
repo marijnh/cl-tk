@@ -39,15 +39,21 @@
         (apply handler args)
         (warn "Event '~a' fired, but no handler exists." id))))
 
+(defun event-snapshot ()
+  (@next-id *tk*))
+(defun clear-events (snapshot)
+  (let ((tab (@table *tk*)))
+    (maphash (lambda (k v)
+               (declare (ignore v))
+               (when (>= k snapshot) (remhash k tab)))
+             tab)
+    (setf (@next-id *tk*) snapshot)))
+
 (defmacro with-local-events (&body body)
-  (let ((count (gensym)))
-    `(let ((,count (@next-id *tk*)))
+  (let ((snap (gensym)))
+    `(let ((,snap (event-snapshot)))
        (unwind-protect (progn ,@body)
-         (let ((tab (@table *tk*)))
-           (maphash (lambda (k v)
-                      (declare (ignore v))
-                      (when (>= k ,count) (remhash k tab)))
-                    tab))))))
+         (clear-events ,snap)))))
 
 ;; Methods on tk objects
 
