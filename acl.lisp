@@ -6,10 +6,10 @@
       #+unix
       (progn (load "libtcl8.5.so")
              (load "libtk8.5.so"))
-      #+windows
+      #+mswindows
       (progn (load "tcl85.dll")
              (load "tk85.dll"))
-      #+(and (not windows) (not unix))
+      #+(and (not mswindows) (not unix))
       (error "Don't know how to load Tk libraries on this system.")
       (setf loaded t))))
 
