@@ -3,8 +3,14 @@
 (let ((loaded nil))
   (defun load-libs ()
     (unless loaded
-      (load "libtcl8.5.so")
-      (load "libtk8.5.so")
+      #+unix
+      (progn (load "libtcl8.5.so")
+             (load "libtk8.5.so"))
+      #+windows
+      (progn (load "tcl85.dll")
+             (load "tk85.dll"))
+      #+(and (not windows) (not unix))
+      (error "Don't know how to load Tk libraries on this system.")
       (setf loaded t))))
 
 (ff:def-foreign-call (create-interp "Tcl_CreateInterp") (:void) :returning (:foreign-address))
