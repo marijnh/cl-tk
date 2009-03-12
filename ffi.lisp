@@ -22,7 +22,7 @@
   (tcl-send tk "proc _ev {args} {global _events; foreach arg $args {append escaped [_esc $arg]}; lappend _events \"([concat $escaped])\"}")
   (tcl-send tk "proc _get_ev {} {global _events; set ret [lindex $_events 0]; set _events [lrange $_events 1 end]; set ret}")
   (let ((*tk* tk))
-    (bind-event "." "<Destroy>" () (tk-destroy tk))
+    (tcl-send tk (format nil "bind . <Destroy> {if [string match . %W] {~a}}" (event-handler* (tk-destroy tk))))
     (doevents)))
 
 (defmethod tk-destroy ((tk ffi-tk))
