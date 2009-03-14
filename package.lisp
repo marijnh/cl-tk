@@ -1,7 +1,7 @@
 (defpackage :cl-tk
   (:use :cl)
   (:export #:tcl-error
-           #:toplevel-tk #:with-tk
+           #:toplevel-tk #:with-tk #:*tk*
            #:*wish-binary* #:*tk*
            #:tcl-escape #:lit #:tcl #:tcl[ #:tcl{
            #:wname-cons #:wname-car #:wname-cdr
