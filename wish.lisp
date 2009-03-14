@@ -44,15 +44,14 @@
 
    (tcl-error "Could not start wish process.")))
 
-(defparameter *wish-binary* "wish")
-
 (defclass wish-tk (tk)
   ((stream :reader @stream)
+   (binary :initarg :binary :initform "wish" :reader @binary)
    (queue :initform () :accessor @queue)
    (alive :initform t :accessor @alive)))
 
 (defmethod initialize-instance :after ((tk wish-tk) &key &allow-other-keys)
-  (setf (slot-value tk 'stream) (wish-stream *wish-binary*))
+  (setf (slot-value tk 'stream) (wish-stream (@binary tk)))
   (tcl-send tk "package require Tk 8.5" nil)
   (tcl-send tk "proc _esc {s} {format {\"%s\"} [regsub -all {\"} [regsub -all {\\\\} $s {\\\\\\\\}] {\\\"}]}" nil)
   (tcl-send tk "proc _lst {type args} {puts \"(:$type\"; foreach arg $args {puts \" [_esc $arg]\"}; puts \")\\n\"; flush stdout}" nil)
