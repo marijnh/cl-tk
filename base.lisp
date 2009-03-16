@@ -74,15 +74,15 @@
 ;; Tcl commands
 
 (defun tcl-escape (str)
-  (with-output-to-string (out)
-    (write-char #\" out)
-    (loop :for ch :across str
-          :do (princ (case ch
-                       (#\newline "\\n") (#\tab "\\t") (#\backspace "\\b")
-                       (#\page "\\f") (#\return "\\r") (#\vt "\\v") (#\bell "\\a")
-                       ((#\" #\\ #\[ #\$) (princ #\\ out) ch)
-                       (t ch)) out))
-    (write-char #\" out)))
+  (if (string= str "")
+      "{}"
+      (with-output-to-string (out)
+        (loop :for ch :across str
+              :do (princ (case ch
+                           (#\newline "\\n") (#\tab "\\t") (#\backspace "\\b")
+                           (#\page "\\f") (#\return "\\r") (#\vt "\\v") (#\bell "\\a")
+                           ((#\" #\\ #\[ #\] #\$ #\space) (princ #\\ out) ch)
+                           (t ch)) out)))))
 
 (defstruct (literal-string (:constructor lit (val))) val)
 
