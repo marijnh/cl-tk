@@ -106,7 +106,7 @@
 
 ;; wnames
 
-(defun wname-cons (base name)
+(defun wname-cons (name base)
   (format nil "~a.~a" (if (string= base ".") "" base) name))
 (flet ((find-dot (name)
          (or (position #\. name :from-end t)
@@ -120,7 +120,7 @@
 (defmacro with-wname (name &body body)
   `(let ((*wname* ,name)) ,@body))
 (defun wname (name &optional id)
-  (wname-cons *wname* (if id (format nil "~a~a" name id) name)))
+  (wname-cons (if id (format nil "~a~a" name id) name) *wname*))
 
 ;; Running a Tk instance
 
