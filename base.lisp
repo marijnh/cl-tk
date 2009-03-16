@@ -30,8 +30,9 @@
 
 (defmacro bind-event (tag event (&rest fields) &body body)
   "For example (bind-event \".\" \"<1>\" ((x #\x) (y #\y)) (format t \"clicked ~a,~a\" x y))"
-  `(tcl "bind" ,tag ,event
-        (tcl{ (event-handler (lambda ,(mapcar #'first fields) ,@body) ',(mapcar #'second fields)))))
+  `(multiple-value-bind (handler id) (event-handler (lambda ,(mapcar #'first fields) ,@body) ',(mapcar #'second fields))
+     (tcl "bind" ,tag ,event handler)
+     id))
 
 (defun handle-event (tk id args)
   (let ((handler (gethash id (@table tk))))
