@@ -1,0 +1,455 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01//EN" "http://www.w3.org/TR/html4/strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <title>CL-TK</title>
+    <style type="text/css">
+      body { padding: 3em; max-width: 50em; }
+      h1, h2 { margin-left: -1em; }
+      h1 { font-size: 150%; border-bottom: 2px solid #1A8; }
+      h2 { font-size: 130%; border-bottom: 1px solid #1A8; }
+      h3 { font-size: 110%; }
+      .def { font-family: monospace; font-weight: bold; }
+      .def span { color: #AAA; font-family: sans-serif; font-size: 70%; }
+      .desc { margin-left: 10pt; }
+    </style>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
+  </head>
+
+  <body>
+    <h1>CL-TK</h1>
+
+    <p>CL-TK provides a very basic bridge to <a
+    href="http://tcl.tk">Tcl/Tk</a>. It will fire up a Tk window,
+    handle events, and allow you to evaluate Tcl code.</p>
+
+    <h2>Contents</h2>
+
+    <ul>
+      <li><a href="#news">News</a></li>
+      <li><a href="#download">Download and installation</a></li>
+      <li><a href="#support">Support</a></li>
+      <li><a href="#example">Examples</a></li>
+      <li><a href="#reference">Reference</a>
+        <ul>
+          <li><a href="#back-ends">Back-ends</a></li>
+          <li><a href="#evaluation">Tcl evaluation</a></li>
+          <li><a href="#events">Event handling</a></li>
+          <li><a href="#wnames">Window names</a></li>
+          <li><a href="#errors">Errors</a></li>
+        </ul>
+      </li>
+    </ul>
+
+    <h2 id="news">News</h2>
+
+    <p>No news!</p>
+
+    <h2 id="download">Download and installation</h2>
+
+    <p>This library is released under a BSD-like license, which
+    approximately means you can use the code in whatever way you like,
+    except for passing it off as your own or releasing a modified
+    version without indication that it is not the original. See the
+    LICENSE file in the distribution.</p>
+
+    <p>CL-TK requires <a
+    href="http://www.tcl.tk/software/tcltk/">Tcl/Tk</a> 8.5 to be
+    installed. It also has an optional dependence on <a
+    href="http://common-lisp.net/project/cffi/">CFFI</a> (on platforms
+    other than Allegro Common Lisp). Not having CFFI installed means
+    the FFI backend is not available, and you have to use the
+    <code>wish</code> based backend, which is somewhat slower.</p>
+
+    <p>The current release of CL-TK can be downloaded from <a
+    href="http://marijn.haverbeke.nl/cl-tk/cl-tk.tgz">http://marijn.haverbeke.nl/cl-tk/cl-tk.tgz</a>,
+    or installed with <a
+    href="http://www.cliki.net/ASDF-Install">asdf-install</a>.</p>
+
+    <p>A <a href="http://www.darcs.net/">darcs</a> repository with the
+    most recent changes can be checked out with:</p>
+
+    <pre>&gt; darcs get http://marijn.haverbeke.nl/cl-tk/cl-tk</pre>
+
+    <p>Or you can look at the <a
+    href="http://marijn.haverbeke.nl/darcsweb.cgi?r=cl-tk">repository</a>
+    through darcsweb.</p>
+
+    <h2 id="support">Support</h2>
+
+    <p>There is currently no mailing list, so mail me <a
+    href="mailto:marijnh@gmail.com">directly</a>. I'll set something up when
+    there is enough traffic.</p>
+
+    <h2 id="example">Examples</h2>
+
+    <p>To use CL-TK, a basic understanding of <a
+    href="http://www.tcl.tk/man/tcl8.5/tutorial/tcltutorial.html">Tcl</a>
+    and <a href="http://www.tkdocs.com/tutorial/index.html">Tk</a> is
+    indispensable. If you are completely new to those, you might want
+    to read up on them first.</p>
+
+    <p>When working with Tk, the <code>*tk*</code> special variable
+    has to be bound to a back-end object. The simplest way to do this
+    is:</p>
+
+    <pre>(toplevel-tk)</pre>
+
+    <p>This will automatically create a suitable Tk back-end. See <a
+    href="#backends">below</a> for details on what these back-ends
+    are.</p>
+
+    <p>You should now see an empty window. Next, we'll want to put
+    something into this window:</p>
+
+    <pre>(tcl "pack [ttk::label .label -text {Hello world}]")</pre>
+
+    <p>Or, if you don't want to pass the whole command as one big
+    string:</p>
+
+    <pre>(tcl "pack" (tcl[ "ttk::label" ".label" :text "Hello world"))</pre>
+
+    <p>See <a href="#conversion">below</a> for information about the
+    way in which arguments to <a href="#tcl"><code>tcl</code></a> and
+    <a href="#tcl_"><code>tcl[</code></a> are treated.</p>
+
+    <p>Depending on your platform and back-end, it's possible that you
+    don't see your label in the window yet. That's because it is not
+    reacting to events. <a href="#mainloop"><code>mainloop</code></a>
+    will run Tk's event pump until the window is closed.</p>
+
+    <pre>(mainloop)</pre>
+
+    <p>Another capability that this library provides is running Lisp
+    code when Tk events occur. For example:</p>
+
+    <pre>(with-tk ()
+  (tcl "pack" (tcl[ "ttk::button" ".exit" :text "Exit" :command (event-handler #'destroy)))
+  (mainloop))</pre>
+
+    <p><a href="#with-tk"><code>with-tk</code></a> locally binds
+    <code>*tk*</code>. The <a href="#destroy"><code>destroy</code></a>
+    function (predictably) destroys the Tk instance. But what does <a
+    href="#event-handler"><code>event-handler</code></a> do? Tk event
+    handlers are pieces of Tcl code, not Lisp functions.
+    <code>event-handler</code> returns a piece of code that, when
+    executed, will notify the CL-TK event pump, which will call the
+    function that was passed to <code>event-handler</code>. More about
+    this <a href="#events">below</a>.</p>
+
+    <h2 id="reference">Reference</h2>
+
+    <h3 id="back-ends">Back-ends</h3>
+
+    <p>There are two types of back-ends. It is never obligatory to
+    specify a back-end, and when you don't the sensible thing happens:
+    The system tries to use the faster FFI back-end, and falls back on
+    <code>wish</code> when that fails.</p>
+
+    <p class="def" id="ffi-tk">
+      <span>class</span> ffi-tk
+    </p>
+
+    <p class="desc">Only available when you either have <a
+    href="http://common-lisp.net/project/cffi/">CFFI</a> installed, or
+    are using Allegro Common Lisp. A back-end that tries to load the
+    Tcl and Tk shared libraries, and talk to them through a
+    foreign-function interface.</p>
+
+    <p class="def" id="wish-tk">
+      <span>class</span> wish-tk
+    </p>
+
+    <p class="desc">This back-end starts a <code>wish</code>
+    (windowing shell) process, and communicates with that through its
+    standard in and output channels. You can specify a
+    <code>:binary</code> initarg to specify the name (and optionally
+    path) of the executable to run.</p>
+
+    <p class="def" id="tk">
+      <span>variable</span> *tk*
+    </p>
+
+    <p class="desc">Holds the 'current' back-end. This is used by most
+    of the function in the library. Bind with <a
+    href="#toplevel-tk"><code>toplevel-tk</code></a> and <a
+    href="#with-tk"><code>with-tk</code></a>.</p>
+
+    <p class="def" id="toplevel-tk">
+      <span>function</span> toplevel-tk (&amp;optional back-end)
+    </p>
+
+    <p class="desc">Set <a href="#tk"><code>*tk*</code></a> to a
+    back-end. When no argument is given, the library tries to create a
+    suitable back-end.</p>
+
+    <p class="def" id="with-tk">
+      <span>macro</span> with-tk ((back-end) &amp;body body)
+    </p>
+
+    <p class="desc">Execute <code>body</code> with <a
+    href="#tk"><code>*tk*</code></a> bound to a back-end. Wraps an
+    <code>unwind-protect</code> that makes sure the back-end is
+    destroyed when the body exits.</p>
+
+    <p class="def" id="destroy">
+      <span>function</span> destroy ()
+    </p>
+
+    <p class="desc">Destroy the current back-end. This will close the
+    top-level window, and dispose of any resources that were held.</p>
+
+    <p class="def" id="alive-p">
+      <span>function</span> alive-p ()
+    </p>
+
+    <p class="desc">Test whether the current back-end is still alive.
+    After the user manually closes or kills the top-level window, this
+    will return <code>nil</code>.</p>
+
+    <h3 id="evaluation">Tcl evaluation</h3>
+
+    <p>The main thing to do with this library is sending Tcl commands
+    to an interpreter, in order to make some windowing interface do
+    what you want. The following commands try to make this easy.</p>
+
+    <p class="def" id="tcl">
+      <span>function</span> tcl (command &amp;rest args)
+    </p>
+
+    <p class="desc">Run a piece of Tcl code in the current back-end.
+    The first argument is sent as-is, the rest are converted to
+    strings by the rules below, separated by spaces, and appended to
+    the first argument.</p>
+
+    <dl class="desc">
+      <dt>string</dt><dd>Strings simply <a href="#tcl-escape">escaped</a>.</dd>
+      <dt>number</dt><dd>Converted to a string as per <code>princ-to-string</code>.</dd>
+      <dt>keyword</dt><dd>Lowercased and prepended by a dash, so that
+      named arguments to Tcl operators can look like Lisp keyword
+      arguments.</dd>
+      <dt>list</dt><dd>Treated as if the elements of the list occurred
+      separatly in the argument list.</dd>
+      <dt>Tcl literal</dt><dd>These are created with the <a
+      href="#lit"><code>lit</code></a> function. They are inserted
+      into the command as they are, without any escaping.</dd>
+    </dl>
+
+    <p class="desc">So, for example, the following packs the
+    <code>.foo.scroll</code> widget into the right side of its
+    container.</p>
+
+    <pre class="desc">(tcl "pack" ".foo.scroll" :side "right" :expand 1 :fill "y")</pre>
+
+    <p class="desc">The return value of <code>tcl</code> is the string
+    produced by evaluating the given expression. If Tcl signals an
+    error, a <a href="#tcl-error"><code>tcl-error</code></a> condition
+    is raised.</p>
+
+    <p class="def" id="lit">
+      <span>function</span> lit (string)
+    </p>
+
+    <p class="desc">Wraps the given string to be inserted literally
+    into a Tcl command.</p>
+
+    <p class="def" id="tcl-bracket">
+      <span>function</span> tcl[ (command &amp;rest args)
+    </p>
+
+    <p class="desc">Like <a href="#tcl"><code>tcl</code></a>, but
+    instead of sending the result to the back-end, it is wrapped in
+    '[' and ']' and returned as a literal, so that it can be inserted
+    into another command. For example...</p>
+
+    <pre class="desc">(tcl "grid" (tcl[ "ttk::frame" ".baz" :padding 10) :column 0 :row 1 :sticky "news")</pre>
+
+    <p class="def" id="tcl-brace">
+      <span>function</span> tcl{ (command &amp;rest args)
+    </p>
+
+    <p class="desc">Just like <a
+    href="#tcl-bracket"><code>tcl[</code></a>, but wraps its result in
+    '{' and '}'.</p>
+
+    <p class="def" id="tcl-escape">
+      <span>function</span> tcl-escape (string)
+    </p>
+
+    <p class="desc">Escape a string so that it can be passed as an
+    argument to a Tcl operator. Disables all <code>$</code> and
+    <code>[ ]</code> magic by adding backslashes.</p>
+
+    <h3 id="events">Event handling</h3>
+
+    <p>A Tcl application, or at least its interaction with Lisp
+    (depending on your back-end) only runs when its event pump is
+    running.</p>
+
+    <p class="def" id="doevent">
+      <span>function</span> doevent (&amp;optional block)
+    </p>
+
+    <p class="desc">Handle one event. When <code>block</code> is true,
+    this will wait until an event becomes available, otherwise it will
+    return immediately. Returns a boolean indicating whether an event
+    was handled (always true in blocking mode).</p>
+
+    <p class="def" id="doevents">
+      <span>function</span> doevents ()
+    </p>
+
+    <p class="desc">Handle events (without blocking) until no more
+    events are available.</p>
+
+    <p class="def" id="mainloop">
+      <span>function</span> mainloop ()
+    </p>
+
+    <p class="desc">Handle events (blocking) until the current
+    back-end is no longer alive.</p>
+
+    <p>CL-TK allows you to associate 'magic' Tcl commands with pieces
+    of Lisp code. These commands are then registered as Tcl event
+    handlers, and the CL-TK message pump detects when they are fired,
+    running your Lisp code.</p>
+
+    <p class="def" id="event-handler">
+      <span>function</span> event-handler (function &amp;optional fields)
+    </p>
+
+    <p class="desc">Return a string containing a Tcl command
+    associated with calling the given function. When
+    <code>fields</code> is given (usually you don't need it), it
+    should be a list of characters, which will be put into the Tcl
+    command as <code>%c</code> markers (see <a
+    href="http://www.tcl.tk/man/tcl8.5/TkCmd/bind.htm#M24"><code>bind</code></a>),
+    with their substitutions passed as arguments to the function.
+    Returns the handler ID (see below) as a second value. For
+    example:</p>
+
+    <pre class="desc">(tcl "ttk:button" :text "Exit" :command (event-handler #'destroy))</pre>
+
+    <p class="def" id="event-handler-star">
+      <span>macro</span> event-handler* (&amp;body body)
+    </p>
+
+    <p class="desc">Wraps the given <code>body</code> in a lambda, and
+    passes it to <a
+    href="#event-handler"><code>event-handler</code></a>.</p>
+
+    <p class="def" id="bind-event">
+      <span>macro</span> bind-event (tag event (&amp;rest fields) &amp;body body)
+    </p>
+
+    <p class="desc"><a
+    href="http://www.tcl.tk/man/tcl8.5/TkCmd/bind.htm">Binds</a> the
+    given event for the given tag to a function containing the macro
+    body. If <code>fields</code> is given, it should hold
+    <code>(variable #\c)</code> pairs, where the second element is the
+    character to put into the Tcl event handler, and the first element
+    is the variable to which the substitution of this character will
+    be bound in the body. Returns an event ID.</p>
+
+    <pre class="desc">(bind-event "." "&lt;1>" ((x #\x) (y #\y))
+  (format t "You clicked at ~a,~a.~%" x y))</pre>
+
+    <p>The tricky thing with associating Lisp code with Tcl strings is
+    that the two systems have separate garbage collectors, and as such
+    it is unclear how long the Lisp closures should live. In toy
+    applications, or applications that don't dynamically register
+    events, you can ignore this fact. But usually, you should take
+    care to clean up your handlers, or you are leaking memory.</p>
+
+    <p class="def" id="unregister-event">
+      <span>function</span> unregister-event (id)
+    </p>
+
+    <p class="desc">Release the closure stored in the current back-end
+    under the given event ID.</p>
+
+    <p class="def" id="event-snapshot">
+      <span>function</span> event-snapshot ()
+    </p>
+
+    <p class="desc">Retrieve a 'snapshot' of the current event handler
+    set. At a later time, you can use <a
+    href="#clear-events"><code>clear-events</code></a> to release all
+    event handlers registered after this snapshot was taken.</p>
+
+    <p class="def" id="clear-events">
+      <span>function</span> clear-events (snapshot)
+    </p>
+
+    <p class="desc">Release all events registered since the given <a
+    href="#event-snapshot">snapshot</a>.</p>
+
+    <p class="def" id="with-local-events">
+      <span>macro</span> with-local-events (&amp;body body)
+    </p>
+
+    <p class="desc">Register an event <a
+    href="#event-snapshot">snapshot</a> before running the macro body,
+    and <code>unwind-protect</code> the body to release that snapshot
+    when it unwinds.</p>
+
+    <h3 id="wnames">Window names</h3>
+
+    <p>Tk requires you to come up with a unique 'window name' (as in
+    .main.foo.label20) for every widget you create. This gets pretty
+    tiresome, but these functions try to ease the pain a little.</p>
+
+    <p class="def" id="wname-var">
+      <span>variable</span> *wname*
+    </p>
+
+    <p class="desc">If you decide to use CL-TK's wname facilities,
+    you'll use this to store the window name of the widget you're
+    currently populating.</p>
+
+    <p class="def" id="with-wname">
+      <span>macro</span> with-wname (wname &amp;body body)
+    </p>
+
+    <p class="desc">Binds <a href="wname-var"><code>*wname*</code></a>
+    to the given value in <code>body</code>.</p>
+
+    <p class="def" id="wname">
+      <span>function</span> wname (name &amp;optional id)
+    </p>
+
+    <p class="desc">Create a new window name, based on <a
+    href="wname-var"><code>*wname*</code></a>. If <code>*wname*</code>
+    is <code>.foo</code>, <code>(wname "bar")</code> gives you
+    <code>.foo.bar</code>, and <code>(wname "bar" 10)</code> gives
+    <code>.foo.bar10</code>.</p>
+
+    <p class="def" id="wname-cons">
+      <span>function</span> wname-cons (name base)
+    </p>
+
+    <p class="desc">Extend a base window name. For example,
+    <code>(wname-cons "button" ".frame")</code> yields
+    <code>".frame.button"</code>.</p>
+
+    <p class="def" id="wname-car">
+      <span>function</span> wname-car (wname)
+    </p>
+
+    <p class="desc">Take the inner element of a window name.</p>
+
+    <p class="def" id="wname-cdr">
+      <span>function</span> wname-cdr (wname)
+    </p>
+
+    <p class="desc">Return the outer element of window name. For
+    example <code>(wname-cdr ".dialog.top.scroll")</code> gives
+    <code>.dialog.top</code>.</p>
+
+    <h3 id="errors">Errors</h3>
+
+    <p id="tcl-error">All errors raised by CL-TK have the type
+    <code>tcl-error</code>, which is a subclass of
+    <code>simple-error</code> without extra slots.</p>
+
+  </body>
+</html>
