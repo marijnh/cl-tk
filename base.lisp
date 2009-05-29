@@ -82,7 +82,7 @@
               :do (princ (case ch
                            (#\newline "\\n") (#\tab "\\t") (#\backspace "\\b")
                            (#\page "\\f") (#\return "\\r") (#\vt "\\v") (#\bell "\\a")
-                           ((#\" #\\ #\[ #\] #\$ #\space #\} #\{) (princ #\\ out) ch)
+                           ((#\" #\\ #\[ #\] #\$ #\space #\} #\{ #\;) (princ #\\ out) ch)
                            (t ch)) out)))))
 
 (defstruct (literal-string (:constructor lit (val))) val)
