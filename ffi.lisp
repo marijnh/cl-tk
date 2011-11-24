@@ -13,7 +13,7 @@
   (handler-case (load-libs)
     (error (e) (tcl-error (princ-to-string e))))
   (let ((int (create-interp)))
-    (when (zerop int) (tcl-error "Could not create interpreter."))
+    (when (null-pointer-p int) (tcl-error "Could not create interpreter."))
     (unless (and (= (tcl-init int) +tcl-ok+) (= (tk-init int) +tcl-ok+))
       (tcl-error "Initialising Tcl/Tk failed."))
     (setf (slot-value tk 'interp) int))

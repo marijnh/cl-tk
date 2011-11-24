@@ -26,3 +26,5 @@
 (cffi:defcfun ("Tcl_GetStringResult" get-string-result) (:string :encoding :utf-8) (interp :pointer))
 (cffi:defcfun ("Tcl_DoOneEvent" do-one-event) :int (flags :int))
 (cffi:defcfun ("Tk_Init" tk-init) :int (interp :pointer))
+
+(defun null-pointer-p (ptr) (cffi:null-pointer-p ptr))

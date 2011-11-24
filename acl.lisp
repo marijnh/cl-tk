@@ -25,3 +25,5 @@
   (excl:native-to-string (get-string-result% interp) :external-format :utf-8))
 (ff:def-foreign-call (do-one-event "Tcl_DoOneEvent") ((flags :int)) :returning (:int))
 (ff:def-foreign-call (tk-init "Tk_Init") ((interp :foreign-address)) :returning (:int))
+
+(defun null-pointer-p (ptr) (zerop ptr))
