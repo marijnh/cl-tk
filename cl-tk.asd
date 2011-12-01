@@ -3,6 +3,7 @@
     (pushnew :cffi *features*)))
 
 (asdf:defsystem :cl-tk
+  :description "Minimal bridge to Tcl/Tk"
   :depends-on (#+(and (not allegro) cffi) :cffi)
   :components ((:file "package")
                (:file "base" :depends-on ("package"))
