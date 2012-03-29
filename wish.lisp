@@ -13,7 +13,7 @@
         (ext:process-input proc))))
 
    #+clisp
-   (ext:run-program binary-name :input :stream :output :stream :wait nil)
+   (ext:run-program binary-name :input :stream :output :stream :wait t)
 
    #+sbcl
    (let ((proc (sb-ext:run-program binary-name nil :input :stream :output :stream :wait nil :search t)))
