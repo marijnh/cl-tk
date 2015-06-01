@@ -4,6 +4,8 @@
 
 (asdf:defsystem :cl-tk
   :description "Minimal bridge to Tcl/Tk"
+  :author "Marijn Haverbeke <marijnh@gmail.com>"
+  :license "BSD"
   :depends-on (#+(and (not allegro) cffi) :cffi)
   :components ((:file "package")
                (:file "base" :depends-on ("package"))
